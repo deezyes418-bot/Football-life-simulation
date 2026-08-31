@@ -3,19 +3,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Football Life Career</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0a0b0f">
-<meta name="color-scheme" content="dark">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Football Life">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-180.png">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 :root{
-  color-scheme: dark;
   --bg:#0a0b0f; --surface:#12141c; --surface2:#1a1d28; --surface3:#222633;
   --border:#2a2f3d; --border2:#3a4155;
   --text:#f0f2f7; --muted:#8b92a8; --dim:#5c6378;
@@ -365,6 +355,46 @@ th{color:var(--muted); font-weight:600; font-size:10px; text-transform:uppercase
 /* ===== EURO ROUND TAG ===== */
 .eutag{display:inline-block; font-size:10px; font-weight:800; letter-spacing:.4px; text-transform:uppercase;
   padding:3px 8px; border-radius:8px; background:rgba(77,166,255,.16); color:var(--blue); margin-left:6px}
+
+/* ===== ENHANCED CHARACTER CREATOR ===== */
+.avatar{
+  border-radius:46% 46% 44% 44% / 42% 42% 50% 50%;
+  overflow:visible;
+  background-clip:padding-box;
+}
+.avatar::before{
+  content:""; position:absolute; left:10%; right:10%; bottom:-15%; height:24%;
+  background:inherit; border-radius:38% 38% 16% 16%; z-index:-1;
+  box-shadow:inset 0 8px 12px rgba(0,0,0,.08);
+}
+.avatar .ear{z-index:0; box-shadow:inset -2px 0 4px rgba(0,0,0,.12), inset 2px 0 3px rgba(255,255,255,.12)}
+.avatar .eye{
+  width:17%; height:13%; top:40%;
+  border-radius:48% 48% 55% 55%;
+}
+.avatar .eye.l{left:20%}.avatar .eye.r{right:20%}
+.avatar .pupil{width:58%;height:70%;left:21%;top:15%}
+.avatar .brow{top:34.5%; height:4px; box-shadow:0 1px 0 rgba(0,0,0,.08)}
+.avatar .nose{
+  width:9%; height:13%; left:45.5%; top:51%;
+  background:linear-gradient(135deg,rgba(0,0,0,.02),rgba(0,0,0,.14));
+  border-radius:45% 45% 55% 55%;
+}
+.avatar .mouth{
+  width:24%; height:9%; left:38%; bottom:17%;
+  border-radius:15% 15% 55% 55%;
+  background:rgba(255,255,255,.88);
+}
+.avatar .gloss{z-index:8}
+.appearance-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.appearance-tools button{margin:0;background:var(--surface3);color:var(--text);box-shadow:none;border:1px solid var(--border2);font-size:12px}
+.appearance-tools button.on{border-color:var(--accent);background:var(--accent-dim);color:var(--accent2)}
+.age-lock{
+  background:linear-gradient(135deg,rgba(167,139,250,.12),rgba(18,20,28,.9));
+  border:1px solid rgba(167,139,250,.35); border-radius:14px; padding:14px; margin:10px 12px;
+}
+.age-lock h3{margin:0 0 5px;color:var(--purple);font-size:15px}
+.age-lock p{margin:0;color:var(--muted);font-size:12px}
 </style></head><body>
 <header class="app">FOOTBALL LIFE <span>CAREER MODE</span></header>
 <main>
@@ -443,6 +473,12 @@ th{color:var(--muted); font-weight:600; font-size:10px; text-transform:uppercase
 <div class="swatches" id="hairColorRow"></div>
 <label class="field">Eye color</label>
 <select id="eyes"><option>Brown</option><option>Dark brown</option><option>Hazel</option><option>Green</option><option>Blue</option><option>Gray</option></select>
+<select id="faceShape" class="hidden"><option value="Oval">Oval</option><option value="Round">Round</option><option value="Square">Square</option><option value="Long">Long</option><option value="Heart">Heart</option></select>
+<div class="appearance-tools">
+<button type="button" id="facePrev" onclick="faceStep(-1)">◀ Face</button>
+<button type="button" id="faceNext" onclick="faceStep(1)">Face ▶</button>
+</div>
+<p class="muted" id="faceText" style="margin:5px 0 0">Face shape: Oval</p>
 <select id="brows" class="hidden"><option>Soft</option><option>Thick</option><option>Thin</option></select>
 <select id="beard" class="hidden"><option>None</option><option>Stubble</option><option>Beard</option><option>Mustache</option></select>
 <label class="field">Height</label>
@@ -513,6 +549,10 @@ th{color:var(--muted); font-weight:600; font-size:10px; text-transform:uppercase
 <div class="card"><h2>Money</h2><h1 id="money"></h1><button type="button" onclick="lifeChoice()">MAKE LIFE CHOICE</button></div>
 </div>
 <div class="card"><h3>Life Events</h3><div id="lifeEvents"></div></div>
+<div class="age-lock">
+<h3>🔒 Betting / Gambling</h3>
+<p id="gamblingLockText">Age-restricted feature. Gambling mechanics are not available in this version of Football Life.</p>
+</div>
 <button type="button" class="rowbtn" onclick="page('shop')"><span class="ico">🛍️</span><span>Shopping<small>Stores, cars, houses, jets</small></span></button>
 </div>
 <div id="shop" class="page hidden">
@@ -856,6 +896,7 @@ function injuryBoxHtml(){
     '<button type="button" onclick="injuryRestStep()">Rest &amp; continue recovery</button></div>';
 }
 function backfillSaveFields(){
+  if(g&&g.look&&!g.look.faceShape)g.look.faceShape="Oval";
   if(!g) return;
   const defaults={leagueGoals:0,leagueAssists:0,cupGoals:0,cupAssists:0,europeGoals:0,europeAssists:0,intlAssists:0,
     uclApps:0,uclGoals:0,uclAssists:0,europaApps:0,europaGoals:0,europaAssists:0,
@@ -938,7 +979,8 @@ function paintSwatches(id,colors,key){
     row.appendChild(b);
   });
 }
-const look={skin:SKINS[0],hairCol:HAIRCOLS[3]};
+const look={skin:SKINS[0],hairCol:HAIRCOLS[3],faceShape:"Oval"};
+const FACE_SHAPES=["Oval","Round","Square","Long","Heart"];
 function fillHeights(){
   const el=$("height"); el.innerHTML="";
   for(let cm=165; cm<=202; cm++){
@@ -961,85 +1003,64 @@ function drawAvatar(id){
   const skin=(g&&g.look&&g.look.skin)||look.skin;
   const hc=(g&&g.look&&g.look.hairCol)||look.hairCol;
   const eyeName=(g&&g.look&&g.look.eyes)||($("eyes")&&$("eyes").value)||"Brown";
+  const face=(g&&g.look&&g.look.faceShape)||look.faceShape||"Oval";
   const eyeMap={"Brown":"#4a2c14","Dark brown":"#1f1008","Hazel":"#7a5c28","Green":"#2a6b38","Blue":"#2a5a9e","Gray":"#5a6270"};
   const pupil=eyeMap[eyeName]||"#4a2c14";
-  // Radial-gradient skin shading for a molded, 3D-lit look instead of a flat fill
-  el.style.background="radial-gradient(circle at 34% 28%, "+shadeColor(skin,18)+" 0%, "+skin+" 42%, "+shadeColor(skin,-14)+" 100%)";
-  const isBig=el.classList.contains("big");
-  const s=isBig?1.15:1;
-
-  // Hair styles — fuller BitLife-style silhouettes
+  const faceRadius={
+    Oval:"46% 46% 44% 44% / 40% 40% 53% 53%",
+    Round:"50% 50% 48% 48% / 48% 48% 48% 48%",
+    Square:"38% 38% 34% 34% / 35% 35% 42% 42%",
+    Long:"45% 45% 42% 42% / 34% 34% 57% 57%",
+    Heart:"48% 48% 38% 38% / 40% 40% 50% 50%"
+  };
+  el.style.borderRadius=faceRadius[face]||faceRadius.Oval;
+  el.style.background="radial-gradient(circle at 34% 25%, "+shadeColor(skin,20)+" 0%, "+skin+" 44%, "+shadeColor(skin,-16)+" 100%)";
   let hair="";
-  if(style==="bald"){
-    hair="";
-  } else if(style==="buzz"){
-    hair='<div style="position:absolute;top:0;left:8%;right:8%;height:38%;background:'+hc+';opacity:.9;border-radius:50% 50% 20% 20%"></div>';
+  if(style==="bald"){hair="";}
+  else if(style==="buzz"){
+    hair='<div style="position:absolute;top:-2%;left:7%;right:7%;height:31%;background:'+hc+';opacity:.9;border-radius:50% 50% 28% 28%;box-shadow:inset 0 -5px 6px rgba(0,0,0,.18)"></div>';
   } else if(style==="fade"){
-    hair='<div style="position:absolute;top:-4%;left:10%;right:10%;height:32%;background:'+hc+';border-radius:50% 50% 18% 18%"></div>'+
-         '<div style="position:absolute;top:18%;left:2%;width:16%;height:32%;background:'+hc+';opacity:.5;border-radius:40%"></div>'+
-         '<div style="position:absolute;top:18%;right:2%;width:16%;height:32%;background:'+hc+';opacity:.5;border-radius:40%"></div>';
+    hair='<div style="position:absolute;top:-6%;left:9%;right:9%;height:34%;background:'+hc+';border-radius:52% 52% 22% 22%;box-shadow:inset 0 -6px 8px rgba(0,0,0,.15)"></div>'+
+         '<div style="position:absolute;top:13%;left:1%;width:17%;height:31%;background:'+hc+';opacity:.38;border-radius:40%"></div>'+
+         '<div style="position:absolute;top:13%;right:1%;width:17%;height:31%;background:'+hc+';opacity:.38;border-radius:40%"></div>';
   } else if(style==="curly"){
-    hair='<div style="position:absolute;top:-12%;left:2%;right:2%;height:52%;background:'+hc+';border-radius:50%"></div>'+
-         '<div style="position:absolute;top:0;left:0;width:26%;height:26%;background:'+hc+';border-radius:50%"></div>'+
-         '<div style="position:absolute;top:-6%;left:22%;width:28%;height:28%;background:'+hc+';border-radius:50%"></div>'+
-         '<div style="position:absolute;top:-6%;right:22%;width:28%;height:28%;background:'+hc+';border-radius:50%"></div>'+
-         '<div style="position:absolute;top:0;right:0;width:26%;height:26%;background:'+hc+';border-radius:50%"></div>'+
-         '<div style="position:absolute;top:18%;left:12%;width:20%;height:20%;background:'+hc+';border-radius:50%"></div>'+
-         '<div style="position:absolute;top:18%;right:12%;width:20%;height:20%;background:'+hc+';border-radius:50%"></div>';
+    hair='<div style="position:absolute;top:-13%;left:0;right:0;height:49%;background:'+hc+';border-radius:50%;box-shadow:inset 0 -8px 9px rgba(0,0,0,.12)"></div>'+
+      [2,18,34,50,66,82].map((x,i)=>'<div style="position:absolute;top:'+(i%2?'-3':'3')+'%;left:'+x+'%;width:20%;height:23%;background:'+hc+';border-radius:50%;box-shadow:inset -3px -3px 5px rgba(0,0,0,.12)"></div>').join("");
   } else if(style==="afro"){
-    hair='<div style="position:absolute;top:-18%;left:-12%;right:-12%;height:68%;background:'+hc+';border-radius:50%"></div>'+
-         '<div style="position:absolute;top:8%;left:-4%;width:20%;height:30%;background:'+hc+';border-radius:50%"></div>'+
-         '<div style="position:absolute;top:8%;right:-4%;width:20%;height:30%;background:'+hc+';border-radius:50%"></div>';
+    hair='<div style="position:absolute;top:-18%;left:-10%;right:-10%;height:64%;background:'+hc+';border-radius:50%;box-shadow:inset 0 -10px 12px rgba(0,0,0,.16)"></div>';
   } else if(style==="long"){
-    hair='<div style="position:absolute;top:-8%;left:6%;right:6%;height:42%;background:'+hc+';border-radius:50% 50% 15% 15%"></div>'+
-         '<div style="position:absolute;top:28%;left:-2%;width:22%;height:68%;background:'+hc+';border-radius:0 0 45% 45%"></div>'+
-         '<div style="position:absolute;top:28%;right:-2%;width:22%;height:68%;background:'+hc+';border-radius:0 0 45% 45%"></div>';
+    hair='<div style="position:absolute;top:-9%;left:5%;right:5%;height:42%;background:'+hc+';border-radius:50% 50% 18% 18%"></div>'+
+      '<div style="position:absolute;top:24%;left:-3%;width:22%;height:73%;background:'+hc+';border-radius:0 0 45% 45%"></div>'+
+      '<div style="position:absolute;top:24%;right:-3%;width:22%;height:73%;background:'+hc+';border-radius:0 0 45% 45%"></div>';
   } else if(style==="mohawk"){
-    hair='<div style="position:absolute;top:-10%;left:38%;width:24%;height:55%;background:'+hc+';border-radius:12px 12px 4px 4px"></div>'+
-         '<div style="position:absolute;top:0;left:34%;width:32%;height:18%;background:'+hc+';border-radius:8px"></div>';
+    hair='<div style="position:absolute;top:-14%;left:34%;width:32%;height:53%;background:'+hc+';border-radius:40% 40% 12px 12px;box-shadow:inset 0 -6px 7px rgba(0,0,0,.14)"></div>';
   } else if(style==="waves"){
-    hair='<div style="position:absolute;top:-4%;left:6%;right:6%;height:36%;background:'+hc+';border-radius:50% 50% 30% 30%"></div>'+
-         '<div style="position:absolute;top:12%;left:4%;width:20%;height:22%;background:'+hc+';opacity:.85;border-radius:50%"></div>'+
-         '<div style="position:absolute;top:12%;right:4%;width:20%;height:22%;background:'+hc+';opacity:.85;border-radius:50%"></div>';
+    hair='<div style="position:absolute;top:-5%;left:6%;right:6%;height:35%;background:'+hc+';border-radius:50% 50% 25% 25%;box-shadow:inset 0 -5px 7px rgba(0,0,0,.14)"></div>'+
+      '<div style="position:absolute;top:9%;left:3%;width:23%;height:23%;background:'+hc+';opacity:.82;border-radius:50%"></div>'+
+      '<div style="position:absolute;top:9%;right:3%;width:23%;height:23%;background:'+hc+';opacity:.82;border-radius:50%"></div>';
   } else {
-    // Short default — side-swept fringe, BitLife style
-    hair='<div style="position:absolute;top:-8%;left:6%;right:6%;height:40%;background:'+hc+';border-radius:50% 50% 30% 40%"></div>'+
-         '<div style="position:absolute;top:6%;left:10%;width:46%;height:26%;background:'+hc+';border-radius:0 65% 55% 15%; transform:rotate(-10deg)"></div>'+
-         '<div style="position:absolute;top:16%;left:2%;width:14%;height:24%;background:'+hc+';opacity:.7;border-radius:40%"></div>'+
-         '<div style="position:absolute;top:16%;right:2%;width:14%;height:24%;background:'+hc+';opacity:.7;border-radius:40%"></div>';
+    hair='<div style="position:absolute;top:-9%;left:6%;right:6%;height:39%;background:'+hc+';border-radius:52% 52% 30% 36%;box-shadow:inset 0 -7px 8px rgba(0,0,0,.14)"></div>'+
+      '<div style="position:absolute;top:3%;left:9%;width:52%;height:25%;background:'+hc+';border-radius:0 70% 55% 20%;transform:rotate(-8deg)"></div>'+
+      '<div style="position:absolute;top:15%;left:1%;width:15%;height:23%;background:'+hc+';opacity:.65;border-radius:40%"></div>';
   }
-
   const beard=((g&&g.look&&g.look.beard)||($("beard")&&$("beard").value)||"None");
   let beardHtml="";
-  if(beard==="Stubble"){
-    beardHtml='<div style="position:absolute;left:20%;right:20%;bottom:14%;height:24%;background:#000;opacity:.18;border-radius:0 0 42% 42%;z-index:4"></div>';
-  } else if(beard==="Beard"){
-    beardHtml='<div style="position:absolute;left:16%;right:16%;bottom:6%;height:34%;background:'+hc+';opacity:.92;border-radius:0 0 48% 48%;z-index:4"></div>'+
-              '<div style="position:absolute;left:28%;right:28%;bottom:32%;height:10%;background:'+hc+';border-radius:4px;z-index:5"></div>';
-  } else if(beard==="Mustache"){
-    beardHtml='<div style="position:absolute;left:30%;right:30%;bottom:26%;height:9%;background:'+hc+';border-radius:8px;z-index:5"></div>';
-  }
-
+  if(beard==="Stubble") beardHtml='<div style="position:absolute;left:19%;right:19%;bottom:13%;height:25%;background:#000;opacity:.16;border-radius:0 0 45% 45%;z-index:4"></div>';
+  else if(beard==="Beard") beardHtml='<div style="position:absolute;left:15%;right:15%;bottom:5%;height:35%;background:'+hc+';opacity:.9;border-radius:0 0 48% 48%;z-index:4"></div>';
+  else if(beard==="Mustache") beardHtml='<div style="position:absolute;left:29%;right:29%;bottom:25%;height:9%;background:'+hc+';border-radius:8px;z-index:5"></div>';
   const browH=(($("brows")&&$("brows").value)||(g&&g.look&&g.look.brows)||"Soft");
-  const bh=browH==="Thick"?4.5:browH==="Thin"?2:3.2;
-  const browCol=hc;
-
+  const bh=browH==="Thick"?5:browH==="Thin"?2:3.2;
   el.innerHTML=
     '<div class="sideshade l"></div><div class="sideshade r"></div>'+
-    '<div class="ear l" style="background:'+shadeColor(skin,-6)+'"></div>'+
-    '<div class="ear r" style="background:'+shadeColor(skin,-6)+'"></div>'+
+    '<div class="ear l" style="background:'+shadeColor(skin,-6)+'"></div><div class="ear r" style="background:'+shadeColor(skin,-6)+'"></div>'+
     hair+
     '<div class="cheek l"></div><div class="cheek r"></div>'+
-    '<div class="brow l" style="background:'+browCol+';height:'+bh+'px"></div>'+
-    '<div class="brow r" style="background:'+browCol+';height:'+bh+'px"></div>'+
-    '<div class="eye l"><div class="pupil" style="background:'+pupil+'"></div></div>'+
-    '<div class="eye r"><div class="pupil" style="background:'+pupil+'"></div></div>'+
-    '<div class="nose" style="background:'+shadeColor(skin,-16)+'"></div>'+
-    beardHtml+
-    '<div class="mouth"><div style="position:absolute;left:8%;right:8%;top:38%;height:2px;background:rgba(0,0,0,.12)"></div></div>'+
+    '<div class="brow l" style="background:'+hc+';height:'+bh+'px"></div><div class="brow r" style="background:'+hc+';height:'+bh+'px"></div>'+
+    '<div class="eye l"><div class="pupil" style="background:'+pupil+'"></div></div><div class="eye r"><div class="pupil" style="background:'+pupil+'"></div></div>'+
+    '<div class="nose" style="background:'+shadeColor(skin,-18)+'"></div>'+beardHtml+
+    '<div class="mouth"><div style="position:absolute;left:10%;right:10%;top:38%;height:2px;background:rgba(0,0,0,.12)"></div></div>'+
     '<div class="jawshade"></div><div class="gloss"></div>';
 }
-
 const HAIRS=["Short","Fade","Curly","Afro","Long","Buzz","Bald","Mohawk","Waves"];
 const BROWS=["Soft","Thick","Thin"];
 const BEARDS=["None","Stubble","Beard","Mustache"];
@@ -1049,6 +1070,16 @@ function setLookTab(tab){
   ["Brows","Beard","Hair"].forEach(x=>{const b=$("tab"+x); if(b) b.className=(x===tab?"on":"");});
   paintLookColors();
   drawAvatar("createAvatar");
+}
+function faceStep(dir){
+  const cur=(g&&g.look&&g.look.faceShape)||look.faceShape||"Oval";
+  const i=Math.max(0,FACE_SHAPES.indexOf(cur));
+  const next=FACE_SHAPES[(i+dir+FACE_SHAPES.length)%FACE_SHAPES.length];
+  look.faceShape=next;
+  if($("faceShape"))$("faceShape").value=next;
+  if(g&&g.look)g.look.faceShape=next;
+  if($("faceText"))$("faceText").textContent="Face shape: "+next;
+  drawAvatar("createAvatar"); drawAvatar("gameAvatar");
 }
 function lookStep(dir){
   if(lookTab==="Hair"){
@@ -1120,6 +1151,8 @@ paintSwatches("hairColorRow",HAIRCOLS,"hairCol");
 fillHeights();
 if($("hair")) $("hair").onchange=()=>{drawAvatar("createAvatar");if($("lookText"))$("lookText").textContent=$("hair").value+" hair";};
 if($("eyes")) $("eyes").onchange=()=>drawAvatar("createAvatar");
+if($("faceShape")) $("faceShape").value=look.faceShape;
+if($("faceText")) $("faceText").textContent="Face shape: "+look.faceShape;
 if($("hairBtns")){
   $("hairBtns").innerHTML=["Short","Fade","Curly","Afro","Long","Buzz","Bald","Mohawk","Waves"].map(h=>'<button type="button" onclick="setHair(\''+h+'\')">'+h+'</button>').join("");
 }
@@ -1132,7 +1165,7 @@ function start(){
   const background=$("background").value,bp=BACKGROUNDS[background]||BACKGROUNDS.Wonderkid;
   const type=$("type").value,tp=PLAYER_TYPES[type]||PLAYER_TYPES.Playmaker,league=$("league").value,cs=clubSelect();
   const club=cs&&cs.value?cs.value:LEAGUES[league][0];
-  g={longevity:($("longevity")&&$("longevity").value)||"Like Harry Kane",look:{skin:look.skin,hairCol:look.hairCol,hair:$("hair").value,eyes:$("eyes").value,height:+$("height").value,foot:$("foot").value,brows:($("brows")&&$("brows").value)||"Soft",beard:($("beard")&&$("beard").value)||"None"},name:$("name").value||"Your Player",background,type,country:$("country").value,main:$("main").value,second:$("second").value,third:$("third").value,num:+$("number").value||10,league,club,
+  g={longevity:($("longevity")&&$("longevity").value)||"Like Harry Kane",look:{skin:look.skin,hairCol:look.hairCol,hair:$("hair").value,eyes:$("eyes").value,height:+$("height").value,foot:$("foot").value,brows:($("brows")&&$("brows").value)||"Soft",beard:($("beard")&&$("beard").value)||"None",faceShape:look.faceShape||"Oval"},name:$("name").value||"Your Player",background,type,country:$("country").value,main:$("main").value,second:$("second").value,third:$("third").value,num:+$("number").value||10,league,club,
     age:16,ovr:bp.ovr,potential:bp.pot,peakOvr:bp.ovr,peakAgeAt:16,attrs:makeAttrs(bp.ovr,$("main").value,background,type),
     contract:3,apps:0,goals:0,assists:0,cleanSheets:0,leagueApps:0,cupApps:0,europeApps:0,intlApps:0,intlGoals:0,
     leagueGoals:0,leagueAssists:0,cupGoals:0,cupAssists:0,europeGoals:0,europeAssists:0,intlAssists:0,
@@ -1899,7 +1932,15 @@ function renderShop(){
 function page(x){document.querySelectorAll(".page").forEach(e=>e.classList.add("hidden"));$(x).classList.remove("hidden");
 document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("on"));
 const n=$("nav"+x); if(n) n.classList.add("on"); if(x==="shop"||x==="life") renderShop();}
+
+function renderGamblingLock(){
+  const el=$("gamblingLockText"); if(!el||!g) return;
+  el.textContent=g.age<18
+    ?"🔒 Locked until age 18. This game does not provide gambling/betting mechanics."
+    :"Gambling/betting mechanics are unavailable in this version. Manage money through football earnings and the shop instead.";
+}
 function render(){
+  renderGamblingLock();
   if(!g) return;
   $("player").textContent=g.name+(g.retired?" (Retired)":"");
   drawAvatar("gameAvatar"); if($("lookLine")) $("lookLine").textContent=(g.look.height||180)+" cm · "+(g.look.foot||"Right")+" foot · "+(g.look.hair||"Short")+" "+(g.look.eyes||"Brown")+" eyes";
@@ -2058,9 +2099,5 @@ function deleteSlot(i){
   writeAllSaves(slots);
   openSaveMenu($("game")&&!$("game").classList.contains("hidden")?"save":"load");
 }
-if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>{
-    navigator.serviceWorker.register("service-worker.js").catch(()=>{});
-  });
-}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js");}
 </script></body></html>
